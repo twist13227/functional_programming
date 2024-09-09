@@ -1,0 +1,102 @@
+#lang racket
+(require math/number-theory)
+
+
+;task1
+(define (vector-fold-left func init-val vctr) (
+    let ((len (vector-length vctr))) (
+        let loop ((res init-val) (i 0)) (
+            if (= i len)
+               res
+               (loop (func i res (vector-ref vctr i)) (+ i 1))
+        )
+    )
+))
+
+;(vector-fold-left (lambda (i val el) (add1 val)) 0 #())
+;(vector-fold-left (lambda (i val el) (add1 val)) 0 #(10 20 30))
+
+
+;task2
+;рекурсивный
+(define (fun2a n) (
+        let loop ((x 2)) (
+            if (> x n)
+               '()
+               (if (and (divides? x n) (not (prime? x)))
+                    (cons x (loop (+ x 1)))
+                    (loop (+ x 1))
+               )
+        )
+))
+
+;(fun2a 1)
+;(fun2a 2)
+;(fun2a 12)
+
+
+;итеративный
+(define (fun2b n) (
+        reverse (
+                let loop ((x 2) (res '())) (
+                    if (> x n)
+                       res
+                       (if (and (divides? x n) (not (prime? x)))
+                            (loop (+ x 1) (cons x res))
+                            (loop (+ x 1) res)
+                       )
+                )
+       )
+))
+
+;(fun2b 1)
+;(fun2b 2)
+;(fun2b 12)
+
+
+;task3
+(define (fun3 n) (
+    let loop ((x 2) (n n) (res 1)) (
+        if (= n 0)
+           res
+           (if (prime? x)
+                (loop (+ x 1) n res)
+                (loop (+ x 1) (- n 1) (* res x))
+           )
+    )
+))
+
+;(fun3 0)
+;(fun3 4)
+;(fun3 10)
+
+
+;task4 (с хвостовой рекурсией)
+
+; функции, реализованные в лекциях
+(define empty-tree #())
+(define make-tree vector)
+(define (tree-data tree) (vector-ref tree 0))
+(define (tree-left tree) (vector-ref tree 1))
+(define (tree-right tree) (vector-ref tree 2))
+(define (empty-tree? t) (equal? t #()))
+
+(define (fun4 tree r1 r2) (
+    let loop-cps ((tree tree) (low (min r1 r2)) (high (max r1 r2)) (i 0) (cc (lambda (x) x))) (
+        if (or (empty-tree? tree) (> i high))
+           (cc 0)
+           (loop-cps (tree-left tree) low high (+ i 1) (lambda (x) (
+               loop-cps (tree-right tree) low high (+ i 1) (lambda (y) (
+                    cc (+(if (and (positive? (tree-data tree)) (>= i low) (<= i high)) 1 0)
+                           x
+                           y
+                       )
+                ))
+            ))
+        )
+    )
+))
+
+;(fun4 #(1 #(-1 #(3 #() #()) #(3 #() #())) #(-2 #() #())) 2 1)
+;(fun4 #() 1 10)
+;(fun4 #(10 #() #()) 0 0)
